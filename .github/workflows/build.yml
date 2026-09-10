@@ -1,0 +1,62 @@
+name: Flutter Build Mobile App
+
+on:
+  # Déclenche le workflow à chaque push sur la branche main/master
+  push:
+    branches:
+      - main
+      - master
+  # Permet également un déclenchement manuel depuis l'onglet Actions de GitHub
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Android APK & AAB
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Récupération du code source
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Configuration de Java (Nécessaire pour la compilation Android/Gradle)
+      - name: Set up Java / JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # 3. Configuration de l'environnement Flutter
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x' # Utilise la dernière version stable de Flutter 3
+          channel: 'stable'
+          cache: true # Met en cache le SDK Flutter pour accélérer les futurs builds
+
+      # 4. Vérification de la version et dépendances Flutter
+      - name: Get Flutter dependencies
+        run: |
+          flutter --version
+          flutter pub get
+
+      # 5. Compilation de l'APK Release (pour installation directe)
+      - name: Build APK
+        run: flutter build apk --release
+
+      # 6. Compilation de l'AAB Release (pour publication sur Google Play)
+      - name: Build App Bundle (AAB)
+        run: flutter build appbundle --release
+
+      # 7. Sauvegarde des fichiers compilés dans les Artifacts GitHub
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: build/app/outputs/bundle/release/app-release-aab.aab
