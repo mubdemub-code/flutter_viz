@@ -34,21 +34,25 @@ jobs:
           channel: 'stable'
           cache: true # Met en cache le SDK Flutter pour accélérer les futurs builds
 
-      # 4. Vérification de la version et dépendances Flutter
+      # 4. Régénération des fichiers de projet Android manquants (build.gradle, etc.)
+      - name: Regenerate missing Android project files
+        run: flutter create . --platforms=android
+
+      # 5. Vérification de la version et récupération des dépendances
       - name: Get Flutter dependencies
         run: |
           flutter --version
           flutter pub get
 
-      # 5. Compilation de l'APK Release (pour installation directe)
+      # 6. Compilation de l'APK Release (pour installation directe)
       - name: Build APK
         run: flutter build apk --release
 
-      # 6. Compilation de l'AAB Release (pour publication sur Google Play)
+      # 7. Compilation de l'AAB Release (pour publication sur Google Play)
       - name: Build App Bundle (AAB)
         run: flutter build appbundle --release
 
-      # 7. Sauvegarde des fichiers compilés dans les Artifacts GitHub
+      # 8. Sauvegarde des fichiers compilés dans les Artifacts GitHub
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -59,4 +63,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release-aab
-          path: build/app/outputs/bundle/release/app-release-aab.aab
+          path: build/app/outputs/bundle/release/app-release.aab
